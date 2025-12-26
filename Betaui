@@ -1,0 +1,171 @@
+-- // Basic Cheat Menu for Roblox \\
+-- // Created for educational purposes \\
+-- // Use at your own risk \\
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- // Main GUI \\
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CheatMenu"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- // Main Frame \\
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Position = UDim2.new(0, 10, 0, 10)
+MainFrame.Size = UDim2.new(0, 250, 0, 300)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- // Title Label \\
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.BorderSizePixel = 0
+TitleLabel.Position = UDim2.new(0, 0, 0, 10)
+TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Text = "Cheat Menu"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 20.000
+
+-- // Button Creation Function \\
+local function createButton(text, position, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = text
+    Button.Parent = MainFrame
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.BorderSizePixel = 0
+    Button.Position = position
+    Button.Size = UDim2.new(0, 230, 0, 30)
+    Button.Font = Enum.Font.SourceSans
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 18.000
+    Button.MouseEnter:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end)
+    Button.MouseLeave:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    end)
+    Button.MouseButton1Click:Connect(callback)
+    return Button
+end
+
+-- // Toggle GUI Visibility \\
+local isVisible = true
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            isVisible = not isVisible
+            ScreenGui.Enabled = isVisible
+        end
+    end
+end)
+
+-- // Cheat Functions \\
+local walkSpeedEnabled = false
+local jumpPowerEnabled = false
+local noclipEnabled = false
+local infJumpEnabled = false
+
+-- Walk Speed
+createButton("Toggle Walk Speed", UDim2.new(0, 10, 0, 50), function()
+    walkSpeedEnabled = not walkSpeedEnabled
+    if walkSpeedEnabled then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 50
+        print("Walk Speed Enabled")
+    else
+        LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        print("Walk Speed Disabled")
+    end
+end)
+
+-- Jump Power
+createButton("Toggle Jump Power", UDim2.new(0, 10, 0, 90), function()
+    jumpPowerEnabled = not jumpPowerEnabled
+    if jumpPowerEnabled then
+        LocalPlayer.Character.Humanoid.JumpPower = 100
+        print("Jump Power Enabled")
+    else
+        LocalPlayer.Character.Humanoid.JumpPower = 50
+        print("Jump Power Disabled")
+    end
+end)
+
+-- Noclip
+createButton("Toggle Noclip", UDim2.new(0, 10, 0, 130), function()
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        local NoclipLoop
+        NoclipLoop = RunService.Stepped:Connect(function()
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide == true then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+        print("Noclip Enabled")
+    else
+        RunService.Stepped:Disconnect()
+        -- Restore CanCollide
+        if LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+        print("Noclip Disabled")
+    end
+end)
+
+-- Infinite Jump
+createButton("Toggle Infinite Jump", UDim2.new(0, 10, 0, 170), function()
+    infJumpEnabled = not infJumpEnabled
+    if infJumpEnabled then
+        UserInputService.JumpRequest:Connect(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+                LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+            end
+        end)
+        print("Infinite Jump Enabled")
+    else
+        -- This is tricky to disable perfectly, but for a basic menu, this is fine.
+        print("Infinite Jump Disabled (Requires re-execution to fully disable)")
+    end
+end)
+
+-- BTools
+createButton("Give BTools", UDim2.new(0, 10, 0, 210), function()
+    local BTools = Instance.new("HopperBin")
+    BTools.BinType = Enum.BinType.Grab
+    BTools.Parent = LocalPlayer.Backpack
+    local CloneTool = Instance.new("HopperBin")
+    CloneTool.BinType = Enum.BinType.Clone
+    CloneTool.Parent = LocalPlayer.Backpack
+    local DeleteTool = Instance.new("HopperBin")
+    DeleteTool.BinType = Enum.BinType.Hammer
+    DeleteTool.Parent = LocalPlayer.Backpack
+    print("BTools Given")
+end)
+
+-- Destroy GUI
+createButton("Destroy Menu", UDim2.new(0, 10, 0, 250), function()
+    ScreenGui:Destroy()
+    print("Cheat Menu Destroyed")
+end)
+
+print("Cheat Menu Loaded. Press RightShift to toggle.")

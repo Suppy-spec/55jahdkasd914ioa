@@ -1,0 +1,20 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function toggleNoClip()
+	local character = player.Character
+	if not character then return end
+	for _, part in pairs(character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = not part.CanCollide
+		end
+	end
+end
+
+-- Bind to key "N" for toggle
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.N then
+		toggleNoClip()
+	end
+end)

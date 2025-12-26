@@ -1,0 +1,78 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "SpeedMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromScale(0.25, 0.2)
+frame.Position = UDim2.fromScale(0.375, 0.4)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromScale(1, 0.25)
+title.BackgroundTransparency = 1
+title.Text = "Speed Menu"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+-- TextBox
+local box = Instance.new("TextBox")
+box.Size = UDim2.fromScale(0.8, 0.25)
+box.Position = UDim2.fromScale(0.1, 0.35)
+box.PlaceholderText = "Enter speed (0 - 500)"
+box.Text = ""
+box.TextScaled = true
+box.Font = Enum.Font.Gotham
+box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+box.TextColor3 = Color3.new(1, 1, 1)
+box.Parent = frame
+
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0, 8)
+boxCorner.Parent = box
+
+-- Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.fromScale(0.5, 0.22)
+button.Position = UDim2.fromScale(0.25, 0.68)
+button.Text = "Apply Speed"
+button.TextScaled = true
+button.Font = Enum.Font.GothamBold
+button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Parent = frame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 8)
+buttonCorner.Parent = button
+
+-- Apply speed
+button.MouseButton1Click:Connect(function()
+	local speed = tonumber(box.Text)
+	if not speed then return end
+
+	-- Allow speeds from 0 to 500 (or higher if you want)
+	speed = math.clamp(speed, 0, 500)
+
+	local character = player.Character
+	if character then
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.WalkSpeed = speed
+		end
+	end
+end)

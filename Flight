@@ -1,0 +1,68 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local flySpeed = 50 -- default speed
+local velocity = Vector3.new(0,0,0)
+
+-- Direction control
+local forward = false
+local backward = false
+local left = false
+local right = false
+local up = false
+local down = false
+
+-- Toggle flying with "F"
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.F then
+		flying = not flying
+		humanoidRootPart.Anchored = flying
+	end
+end)
+
+-- Movement keys
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.W then forward = true end
+	if input.KeyCode == Enum.KeyCode.S then backward = true end
+	if input.KeyCode == Enum.KeyCode.A then left = true end
+	if input.KeyCode == Enum.KeyCode.D then right = true end
+	if input.KeyCode == Enum.KeyCode.Space then up = true end
+	if input.KeyCode == Enum.KeyCode.LeftShift then down = true end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.W then forward = false end
+	if input.KeyCode == Enum.KeyCode.S then backward = false end
+	if input.KeyCode == Enum.KeyCode.A then left = false end
+	if input.KeyCode == Enum.KeyCode.D then right = false end
+	if input.KeyCode == Enum.KeyCode.Space then up = false end
+	if input.KeyCode == Enum.KeyCode.LeftShift then down = false end
+end)
+
+-- Fly update loop
+RunService.RenderStepped:Connect(function()
+	if flying then
+		local cam = workspace.CurrentCamera
+		local dir = Vector3.new(0,0,0)
+
+		if forward then dir = dir + cam.CFrame.LookVector end
+		if backward then dir = dir - cam.CFrame.LookVector end
+		if left then dir = dir - cam.CFrame.RightVector end
+		if right then dir = dir + cam.CFrame.RightVector end
+		if up then dir = dir + Vector3.new(0,1,0) end
+		if down then dir = dir - Vector3.new(0,1,0) end
+
+		if dir.Magnitude > 0 then
+			dir = dir.Unit
+			humanoidRootPart.CFrame = humanoidRootPart.CFrame + dir * flySpeed * RunService.RenderStepped:Wait()
+		end
+	end
+end)

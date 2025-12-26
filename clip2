@@ -1,0 +1,46 @@
+-- LocalScript inside StarterPlayerScripts
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local userInput = game:GetService("UserInputService")
+local flying = false
+local flightSpeed = 50
+
+-- Create a client-side floor under the player
+local function createFloor()
+    local floor = Instance.new("Part")
+    floor.Size = Vector3.new(10, 1, 10)
+    floor.Anchored = true
+    floor.CanCollide = true
+    floor.Position = humanoidRootPart.Position - Vector3.new(0, 3, 0)
+    floor.Transparency = 0.5
+    floor.Parent = workspace
+    return floor
+end
+
+local floorPart
+
+-- Toggle flying mode with "0"
+userInput.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Zero then
+        flying = not flying
+        if flying then
+            floorPart = createFloor()
+            humanoidRootPart.Anchored = true
+        else
+            humanoidRootPart.Anchored = false
+            if floorPart then
+                floorPart:Destroy()
+            end
+        end
+    end
+end)
+
+-- Update floor position while flying
+game:GetService("RunService").RenderStepped:Connect(function()
+    if flying and floorPart then
+        floorPart.Position = humanoidRootPart.Position - Vector3.new(0, 3, 0)
+    end
+end)

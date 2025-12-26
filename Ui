@@ -1,0 +1,117 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local localPlayer = Players.LocalPlayer
+local guiEnabled = false
+local selectedPlayer = nil
+local aimMode = "Assist" -- "Assist" or "Snap"
+local espBox = nil
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PlayerESPMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromScale(0.3, 0.5)
+frame.Position = UDim2.fromScale(0.35, 0.25)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.Visible = false
+frame.Parent = screenGui
+
+local uicorner = Instance.new("UICorner")
+uicorner.CornerRadius = UDim.new(0, 12)
+uicorner.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromScale(1, 0.15)
+title.BackgroundTransparency = 1
+title.Text = "Player Menu"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+-- Container for buttons
+local buttonContainer = Instance.new("ScrollingFrame")
+buttonContainer.Size = UDim2.fromScale(1, 0.75)
+buttonContainer.Position = UDim2.fromScale(0, 0.15)
+buttonContainer.CanvasSize = UDim2.new(0,0,0,0)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.Parent = frame
+
+-- Function to refresh player buttons
+local function refreshButtons()
+	buttonContainer:ClearAllChildren()
+	local yOffset = 0
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= localPlayer then
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(0.9, 0, 0, 30)
+			btn.Position = UDim2.new(0.05, 0, 0, yOffset)
+			btn.Text = player.Name
+			btn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+			btn.TextColor3 = Color3.new(1,1,1)
+			btn.Parent = buttonContainer
+
+			btn.MouseButton1Click:Connect(function()
+				selectedPlayer = player
+				-- Remove old box
+				if espBox then espBox:Destroy() end
+				-- Create new ESP box
+				local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					espBox = Instance.new("SelectionBox")
+					espBox.Adornee = player.Character
+					espBox.AlwaysOnTop = true
+					espBox.Color3 = Color3.fromRGB(255,0,0)
+					espBox.LineThickness = 0.08
+					espBox.Parent = localPlayer:WaitForChild("PlayerGui")
+				end
+			end)
+			yOffset = yOffset + 35
+		end
+	end
+	buttonContainer.CanvasSize = UDim2.new(0,0,0,yOffset)
+end
+
+-- Toggle menu with 9
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.Nine then
+		guiEnabled = not guiEnabled
+		frame.Visible = guiEnabled
+
+		-- Remove ESP when turning off
+		if not guiEnabled and espBox then
+			espBox:Destroy()
+			espBox = nil
+			selectedPlayer = nil
+		end
+		refreshButtons()
+	end
+end)
+
+-- Aim assist logic (client-side)
+RunService.RenderStepped:Connect(function()
+	if guiEnabled and selectedPlayer and selectedPlayer.Character then
+		local hrp = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			local camera = workspace.CurrentCamera
+			local mouse = localPlayer:GetMouse()
+			local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+
+			if onScreen then
+				if aimMode == "Snap" then
+					mouse.X = screenPos.X
+					mouse.Y = screenPos.Y
+				end
+				-- For visual-only Assist, you could draw a marker
+				-- or use ESP box, which is already done
+			end
+		end
+	end
+end)
